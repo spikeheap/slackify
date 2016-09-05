@@ -118,7 +118,7 @@ class Slackify < Sinatra::Base
     # creating the user object primes the global credentials cache
     @user = RSpotify::User.new(request.env['omniauth.auth'])
 
-    erb 'auth/callback'.to_sym
+    redirect '/'
   end
 
   get '/auth/failure' do
