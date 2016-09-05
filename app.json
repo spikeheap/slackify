@@ -1,0 +1,23 @@
+{
+  "name": "Slackify",
+  "description": "Curate playlists by posting songs to Slack.",
+  "repository": "https://github.com/spikeheap/slackify",
+  "keywords": ["spotify", "slack", "music"],
+  "env": {
+    "SESSION_SECRET": {
+      "description": "A secret key for verifying the integrity of signed cookies.",
+      "generator": "secret"
+    },
+    "SPOTIFY_CLIENT_ID": {
+      "description": "The client ID generated for your app (see https://developer.spotify.com/my-applications/#!/applications)."
+    },
+    "SPOTIFY_CLIENT_SECRET": {
+      "description": "The client secret generted for your app (see https://developer.spotify.com/my-applications/#!/applications)."
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:hobby-dev"
+    }
+  ]
+}
