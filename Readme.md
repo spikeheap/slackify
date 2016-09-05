@@ -2,6 +2,8 @@
 - protect all management pages with OAuth & session cookie
 - add bootstrap
 - add Slack OAuth
+- create Slack integration automagically.
+- Input error handling ;)
 
 ### Installation
 

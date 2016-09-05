@@ -90,7 +90,7 @@ class Slackify < Sinatra::Base
         playlist_owner_spotify_id: playlist_owner_spotify_id,
         playlist_spotify_id: playlist_spotify_id
       ) do |collector|
-        collector.validation_token = SecureRandom.urlsafe_base64(32)
+        collector.validation_token = params['validation_token']
       end
 
     redirect '/'
