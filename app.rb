@@ -24,10 +24,6 @@ class Slackify < Sinatra::Base
     set :database, ENV['DATABASE_URL']
   end
 
-  require_relative './models/account'
-  require_relative './models/collector'
-  require_relative './models/login'
-
   ## Migrations
   migration "create the accounts, logins & collectors" do
     database.create_table :accounts do
@@ -65,6 +61,11 @@ class Slackify < Sinatra::Base
   end
   ## END of migrations
 
+  # these need to come last. Trust me
+  require_relative './models/account'
+  require_relative './models/collector'
+  require_relative './models/login'
+
   configure do
     enable :sessions
   end
@@ -101,7 +102,7 @@ class Slackify < Sinatra::Base
     # persist the login
     auth_data = request.env['omniauth.auth']
 
-    account = Account.find_or_create(email: "test") do |account|
+    account = Account.find_or_create(email: auth_data['info']['email']) do |account|
       account.display_name = auth_data['info']['display_name']
       account.spotify_id = auth_data['info']['id']
     end
