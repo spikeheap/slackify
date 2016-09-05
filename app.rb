@@ -1,7 +1,6 @@
 require 'dotenv'
 require 'sinatra/base'
 require 'json'
-require 'pry'
 require 'rspotify'
 require 'rspotify/oauth'
 require 'sinatra/sequel'
