@@ -133,14 +133,13 @@ class Slackify < Sinatra::Base
 
   post '/webhooks/slack' do
     request.body.rewind
-    data = JSON.parse request.body.read
 
-    collector = Collector.where(validation_token: data['token']).first
+    collector = Collector.where(validation_token: params['token']).first
     error 403 if collector.nil?
 
     RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_CLIENT_SECRET'])
     
-    tracks = extract_song_ids_from(data['text'])
+    tracks = extract_song_ids_from(params['text'])
       .map{|song_id| RSpotify::Track.find(song_id)
           .tap{|track| puts "Found #{track.name} by #{track.artists.map(&:name).join(', ')}"}}
       .reject{|track| track.nil?}

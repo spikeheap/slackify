@@ -4,6 +4,7 @@
 - add Slack OAuth
 - create Slack integration automagically.
 - Input error handling ;)
+- Use a consistent secret, so it doesn't need authenticating over and over again.
 
 ### Installation
 
