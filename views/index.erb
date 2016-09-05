@@ -1,0 +1,23 @@
+<h1>Slackify</h1>
+<% if @account.nil? %>
+  <p>You are not logged in. <a href="/auth/spotify">Link Spotify</a></p>
+<% else %>
+  <em>You are logged in as <%= @account.display_name %></em>
+  <h2>Collectors</h2>
+  <ul>
+    <% @account.collectors.each do |collector| %>
+      <li>
+        <strong>
+          <a href="https://open.spotify.com/user/<%= collector.playlist_owner_spotify_id %>/playlist/<%= collector.playlist_spotify_id %>"><%= collector.playlist_name %></a> 
+        </strong>
+        by <%= collector.playlist_owner_spotify_id %>
+        : <code><%= collector.validation_token %></code>
+      </li>
+    <% end %>
+  </ul>
+  <h3>Add a collector</h3>
+  <form method="POST" action="/collectors">
+    <p>Playlist URI or URL: <input name="playlist_uri" type="text"></p>
+    <input type="submit">
+  </form>
+<% end %>

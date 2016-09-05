@@ -1,0 +1,29 @@
+version: '2'
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+  # db_test:
+  #   image: postgres
+  #   environment:
+  #     - POSTGRES_DB
+  #     - POSTGRES_USER
+  #     - POSTGRES_PASSWORD
+  web:
+    build: .
+    command: bundle exec puma 
+    environment:
+      - POSTGRES_HOST
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+    volumes:
+      - .:/app
+    ports:
+      - "9292:9292"
+    depends_on:
+      - db
+      # - db_test
