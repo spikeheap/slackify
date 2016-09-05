@@ -20,6 +20,8 @@ class Slackify < Sinatra::Base
   # wrap this so services like Heroku work out of the box
   if ENV['DATABASE_URL'].nil?
     set :database, "postgres://#{ENV['POSTGRES_USER']}:#{ENV['POSTGRES_PASSWORD']}@#{ENV['POSTGRES_HOST']}/#{ENV['POSTGRES_DB']}"
+  else
+    set :database, ENV['DATABASE_URL']
   end
 
   require_relative './models/account'
