@@ -83,6 +83,19 @@ class Slackify < Sinatra::Base
   post '/collectors' do
     (playlist_owner_spotify_id, playlist_spotify_id) = playlist_tuples_in(params['playlist_uri'])
 
+    # needed for get_playlist
+    RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_CLIENT_SECRET'])
+    RSpotify::User.new(
+      'id' => current_account.spotify_id, 
+      'display_name' => current_account.display_name,
+      'type' => 'user',
+      'credentials' => {
+        "token" => current_account.logins.first.token,
+        "refresh_token" => current_account.logins.first.refresh_token,
+        "expires_at" => current_account.logins.first.expires_at,
+        "expires" => current_account.logins.first.expires
+      })
+
     Collector.find_or_create(
         account: current_account, 
         login: current_account.logins.first,
@@ -111,14 +124,11 @@ class Slackify < Sinatra::Base
 
     login = Login.find_or_create(account: account, provider: params[:provider])
 
-    login.token = auth_data['credentials']['token'],
-    login.refresh_token = auth_data['credentials']['refresh_token'],
-    login.expires_at = Time.at(auth_data['credentials']['expires_at']),
+    login.token = auth_data['credentials']['token']
+    login.refresh_token = auth_data['credentials']['refresh_token']
+    login.expires_at = Time.at(auth_data['credentials']['expires_at'])
     login.expires = true
     login.save
-
-    # creating the user object primes the global credentials cache
-    @user = RSpotify::User.new(request.env['omniauth.auth'])
 
     redirect '/'
   end
@@ -137,8 +147,6 @@ class Slackify < Sinatra::Base
     collector = Collector.where(validation_token: params['token']).first
     error 403 if collector.nil?
 
-    RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_CLIENT_SECRET'])
-    
     tracks = extract_song_ids_from(params['text'])
       .map{|song_id| RSpotify::Track.find(song_id)
           .tap{|track| puts "Found #{track.name} by #{track.artists.map(&:name).join(', ')}"}}
@@ -153,9 +161,8 @@ class Slackify < Sinatra::Base
   def get_playlist(playlist_owner, id)
     url = "users/#{playlist_owner}/"
     url << (id == 'starred' ? id : "playlists/#{id}")
+    puts url
 
-    RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_CLIENT_SECRET'])
-    
     response = RSpotify::User.oauth_get(playlist_owner, url)
     return response if RSpotify.raw_response
     RSpotify::Playlist.new response
@@ -172,12 +179,20 @@ class Slackify < Sinatra::Base
 
   def add_to_spotify_playlist(collector, tracks)
     RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_CLIENT_SECRET'])
-    RSpotify::User.new(id: collector.login.account.spotify_id, credentials: collector.login)
+    RSpotify::User.new(
+      'id' => collector.login.account.spotify_id, 
+      'display_name' => collector.login.account.display_name, 
+      'credentials' => {
+        "token" => collector.login.token,
+        "refresh_token" => collector.login.refresh_token,
+        "expires_at" => collector.login.expires_at,
+        "expires" => collector.login.expires,
+      })
 
     playlist = get_playlist(collector.playlist_owner_spotify_id, collector.playlist_spotify_id)
     playlist.add_tracks!(tracks)
 
-    puts "Added #{tracks.map(&:name).join(', ')} to playlist '#{playlist.name}'"
+    puts "Added #{tracks.map(&:name).join(', ')} to #{playlist.owner.id}'s playlist '#{playlist.name}'"
   end
 
   def current_account
