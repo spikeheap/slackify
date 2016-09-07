@@ -189,12 +189,17 @@ class Slackify < Sinatra::Base
         "expires" => collector.login.expires,
       })
 
-    puts "Adding #{tracks.map(&:name).join(', ')} to #{playlist.owner.id}'s playlist '#{playlist.name}'"
+    begin
+      playlist = get_playlist(collector.playlist_owner_spotify_id, collector.playlist_spotify_id)
 
-    playlist = get_playlist(collector.playlist_owner_spotify_id, collector.playlist_spotify_id)
-    playlist.add_tracks!(tracks)
-
-    puts "Added #{tracks.map(&:name).join(', ')} to #{playlist.owner.id}'s playlist '#{playlist.name}'"
+      puts "Adding #{tracks.map(&:name).join(', ')} to #{playlist.owner.id}'s playlist '#{playlist.name}'" 
+      playlist.add_tracks!(tracks)
+      puts "Added #{tracks.map(&:name).join(', ')} to #{playlist.owner.id}'s playlist '#{playlist.name}'"
+    rescue => exception
+      puts puts "Error adding #{tracks.map(&:name).join(', ')} to playlist #{collector.playlist_owner_spotify_id}/#{collector.playlist_spotify_id}"
+      puts e.message
+      puts e.backtrace
+    end
   end
 
   def current_account
