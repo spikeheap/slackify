@@ -152,7 +152,9 @@ class Slackify < Sinatra::Base
           .tap{|track| puts "Found #{track.name} by #{track.artists.map(&:name).join(', ')}"}}
       .reject{|track| track.nil?}
 
-    add_to_spotify_playlist(collector, tracks)
+    unless tracks.empty?
+      add_to_spotify_playlist(collector, tracks)
+    end
 
     status 200
   end
@@ -197,8 +199,8 @@ class Slackify < Sinatra::Base
       puts "Added #{tracks.map(&:name).join(', ')} to #{playlist.owner.id}'s playlist '#{playlist.name}'"
     rescue => exception
       puts puts "Error adding #{tracks.map(&:name).join(', ')} to playlist #{collector.playlist_owner_spotify_id}/#{collector.playlist_spotify_id}"
-      puts e.message
-      puts e.backtrace
+      puts exception.message
+      puts exception.backtrace
     end
   end
 
