@@ -7,12 +7,8 @@ require 'sinatra/sequel'
 
 class Slackify < Sinatra::Base
   enable  :sessions, :logging
-  # set :session_secret, ENV['SESSION_SECRET']
-  # use Rack::Session::Cookie, :key => 'rack.session',
-  #                          # :domain => 'foo.com',
-  #                          # :path => '/',
-  #                          # :expire_after => 2592000,
-  #                          :secret => ENV['SESSION_SECRET']
+  set :session_secret, ENV['SESSION_SECRET']
+
   Dotenv.load
   register Sinatra::SequelExtension
   Sequel::Model.plugin :timestamps, :update_on_create => true
@@ -74,13 +70,14 @@ class Slackify < Sinatra::Base
     provider :spotify, ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_CLIENT_SECRET'], scope: 'user-read-email playlist-modify-public playlist-read-collaborative playlist-modify-private' # user-library-read user-library-modify
   end
 
-
   get '/' do
     @account = current_account
     erb :index
   end
 
   post '/collectors' do
+    error 401 if current_account.nil?
+
     (playlist_owner_spotify_id, playlist_spotify_id) = playlist_tuples_in(params['playlist_uri'])
 
     # needed for get_playlist

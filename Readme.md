@@ -1,10 +1,13 @@
 ## To do
-- protect all management pages with OAuth & session cookie
-- add bootstrap
-- add Slack OAuth
-- create Slack integration automagically.
-- Input error handling ;)
-- Use a consistent secret, so it doesn't need authenticating over and over again.
+- [x] protect all management pages with OAuth & session cookie
+- [x] Use a consistent secret, so it doesn't need authenticating over and over again.
+- [ ] improve in-page description/docs
+- [ ] add bootstrap
+- [ ] add Slack OAuth
+- [ ] create Slack integration automagically.
+- [ ] Input error handling ;)
+- [ ] Refactor out of single class
+- [ ] Add some tests
 
 ### Installation
 
