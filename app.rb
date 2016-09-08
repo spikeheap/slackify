@@ -4,11 +4,12 @@ require 'json'
 require 'rspotify'
 require 'rspotify/oauth'
 require 'sinatra/sequel'
+require 'sequel'
 
 class Slackify < Sinatra::Base
 
   Dotenv.load
-  
+
   enable  :sessions
   set :session_secret, ENV['SESSION_SECRET']
 
@@ -23,54 +24,21 @@ class Slackify < Sinatra::Base
   end
 
   ## Migrations
-  migration "create the accounts, logins & collectors" do
-    database.create_table :accounts do
-      primary_key :id
-      String      :display_name
-      String      :email
-      String      :spotify_id
-      DateTime   :created_at, :null => false
-      DateTime   :updated_at, :null => false
-    end
-
-    database.create_table :logins do
-      primary_key :id
-      foreign_key :account_id, :accounts
-      String      :provider
-      String      :token
-      String      :refresh_token
-      DateTime    :expires_at
-      Boolean     :expires
-      DateTime   :created_at, :null => false
-      DateTime   :updated_at, :null => false
-    end
-
-    database.create_table :collectors do
-      primary_key :id
-      foreign_key :account_id, :accounts
-      foreign_key :login_id, :logins
-      String      :playlist_name
-      String      :validation_token
-      String      :playlist_owner_spotify_id
-      String      :playlist_spotify_id
-      DateTime   :created_at
-      DateTime   :updated_at
-    end
-  end
-  ## END of migrations
-
+  Sequel.extension :migration
+  Sequel::Migrator.apply(database, './db/migrate/')
+  
   # these need to come last. Trust me
   require_relative './models/account'
   require_relative './models/collector'
   require_relative './models/login'
 
-  configure do
-    enable :sessions
-  end
-
   use OmniAuth::Builder do
     provider :spotify, ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_CLIENT_SECRET'], scope: 'user-read-email playlist-modify-public playlist-read-collaborative playlist-modify-private' # user-library-read user-library-modify
   end
+
+  #
+  # Routes
+  #
 
   get '/' do
     @account = current_account
@@ -133,12 +101,8 @@ class Slackify < Sinatra::Base
   end
 
   get '/auth/failure' do
-    <<-HTML
-      <h1>Something went wrong 😔</h1>
-      <a href="/auth/spotify">Link Spotify</a>
-    HTML
+    erb 'auth/failure'.to_sym
   end
-
 
   post '/webhooks/slack' do
     request.body.rewind
@@ -158,7 +122,10 @@ class Slackify < Sinatra::Base
     status 200
   end
 
-
+  #
+  # Helpers and logic
+  #
+  
   def get_playlist(playlist_owner, id)
     url = "users/#{playlist_owner}/"
     url << (id == 'starred' ? id : "playlists/#{id}")
