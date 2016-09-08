@@ -6,10 +6,12 @@ require 'rspotify/oauth'
 require 'sinatra/sequel'
 
 class Slackify < Sinatra::Base
-  enable  :sessions, :logging
-  set :session_secret, ENV['SESSION_SECRET']
 
   Dotenv.load
+  
+  enable  :sessions
+  set :session_secret, ENV['SESSION_SECRET']
+
   register Sinatra::SequelExtension
   Sequel::Model.plugin :timestamps, :update_on_create => true
 
