@@ -125,7 +125,7 @@ class Slackify < Sinatra::Base
   #
   # Helpers and logic
   #
-  
+
   def get_playlist(playlist_owner, id)
     url = "users/#{playlist_owner}/"
     url << (id == 'starred' ? id : "playlists/#{id}")
@@ -141,8 +141,9 @@ class Slackify < Sinatra::Base
   end
 
   def playlist_tuples_in(text)
-    # FIXME: cope with URIs too
-    text.scan(/https:\/\/open.spotify.com\/user\/([a-zA-Z0-9]+)\/playlist\/([a-zA-Z0-9]+)/).flatten
+    # spotify:user:spikeheap:playlist:4Tvb0FsTCfDhIYohOCZgf9
+    # https://open.spotify.com/user/spikeheap/playlist/4Tvb0FsTCfDhIYohOCZgf9
+    text.scan(/(?:https:\/\/open.spotify.com\/user\/|spotify:user:)([a-zA-Z0-9]+)(?:\/|:)([a-zA-Z0-9]+)/).flatten
   end
 
   def add_to_spotify_playlist(collector, tracks)

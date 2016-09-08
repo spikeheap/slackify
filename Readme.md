@@ -1,14 +1,14 @@
 ## To do
 - [x] protect all management pages with OAuth & session cookie
 - [x] Use a consistent secret, so it doesn't need authenticating over and over again.
+- [x] Refactor migrations out of single class
+- [x] Review TODOs
 - [ ] 'remove' button for collectors
 - [ ] playlist URI support
 - [ ] improve in-page description/docs
 - [ ] add bootstrap
 - [ ] Input error handling ;)
-- [ ] Refactor out of single class
 - [ ] Add some tests
-- [ ] Review TODOs
 - [ ] Blog post
 - [ ] Twitter announcement
 - [ ] add Slack OAuth
