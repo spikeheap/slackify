@@ -76,6 +76,23 @@ class Slackify < Sinatra::Base
     redirect '/'
   end
 
+  delete "/collectors/:id" do
+    error 403 unless request.xhr?
+
+    collector = Collector[params[:id].to_i]
+
+    error 404 if collector.nil?
+    
+    collector.delete
+
+    status 200
+  end
+
+  delete "/session" do
+    session.delete :account_id
+    status 200
+  end
+
   get '/auth/:provider/callback' do
     error 403 if params[:provider] != 'spotify'
 
@@ -143,7 +160,7 @@ class Slackify < Sinatra::Base
   def playlist_tuples_in(text)
     # spotify:user:spikeheap:playlist:4Tvb0FsTCfDhIYohOCZgf9
     # https://open.spotify.com/user/spikeheap/playlist/4Tvb0FsTCfDhIYohOCZgf9
-    text.scan(/(?:https:\/\/open.spotify.com\/user\/|spotify:user:)([a-zA-Z0-9]+)(?:\/|:)([a-zA-Z0-9]+)/).flatten
+    text.scan(/(?:https:\/\/open.spotify.com\/user\/|spotify:user:)([a-zA-Z0-9]+)[\/:]playlist[\/:]([a-zA-Z0-9]+)/).flatten
   end
 
   def add_to_spotify_playlist(collector, tracks)
@@ -168,6 +185,12 @@ class Slackify < Sinatra::Base
       puts puts "Error adding #{tracks.map(&:name).join(', ')} to playlist #{collector.playlist_owner_spotify_id}/#{collector.playlist_spotify_id}"
       puts exception.message
       puts exception.backtrace
+    end
+  end
+
+  helpers do
+    def current_account
+      Account[session[:account_id]]
     end
   end
 

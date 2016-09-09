@@ -3,16 +3,22 @@
 - [x] Use a consistent secret, so it doesn't need authenticating over and over again.
 - [x] Refactor migrations out of single class
 - [x] Review TODOs
-- [ ] 'remove' button for collectors
-- [ ] playlist URI support
+- [x] playlist URI support
+- [x] add bootstrap
+- [x] 'remove' button for collectors
+
 - [ ] improve in-page description/docs
-- [ ] add bootstrap
+- [ ] improve design
+
+- [ ] Add some tests for track and playlist extraction, and some business logic
 - [ ] Input error handling ;)
-- [ ] Add some tests
+- [ ] Production asset precompilation
+
 - [ ] Blog post
 - [ ] Twitter announcement
 - [ ] add Slack OAuth
 - [ ] create Slack integration automagically.
+- [ ] Add some tests
 
 ### Developing/running in Docker
 
