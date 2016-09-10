@@ -6,9 +6,40 @@ require 'rspotify/oauth'
 require 'sinatra/sequel'
 require 'sequel'
 
+# asset pipeline
+require 'sprockets'
+require 'sprockets-helpers'
+require 'uglifier'
+
+# assets
+require 'bootstrap'
+require 'font-awesome-sass'
+
 class Slackify < Sinatra::Base
 
   Dotenv.load
+
+  # Assets
+
+  set :assets, Sprockets::Environment.new(root)
+
+  configure do
+    assets.logger = Logger.new(STDOUT)
+    assets.append_path File.join(root, 'assets', 'styles')
+    assets.append_path File.join(root, 'assets', 'js')
+    assets.js_compressor  = :uglify
+    assets.css_compressor = :scss
+
+    Sprockets::Helpers.configure do |config|
+      config.environment = assets
+      config.digest      = true
+    end
+  end
+
+  helpers do
+    include Sprockets::Helpers
+  end
+  # End of assets
 
   enable  :sessions
   set :session_secret, ENV['SESSION_SECRET']
