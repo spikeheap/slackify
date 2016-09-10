@@ -6,13 +6,13 @@
 - [x] playlist URI support
 - [x] add bootstrap
 - [x] 'remove' button for collectors
+- [x] Production asset precompilation
 
 - [ ] improve in-page description/docs
 - [ ] improve design
 
 - [ ] Add some tests for track and playlist extraction, and some business logic
 - [ ] Input error handling ;)
-- [ ] Production asset precompilation
 
 - [ ] Blog post
 - [ ] Twitter announcement
