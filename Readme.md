@@ -20,6 +20,13 @@
 - [ ] create Slack integration automagically.
 - [ ] Add some tests
 
+### Workflow goal
+
+- User connects to spotify
+- User selects a playlist to add to
+- User connects to Slack
+- User selects the channel to monitor
+
 ### Developing/running in Docker
 
 Add a `.env` using the following template (insert your credentials):
