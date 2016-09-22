@@ -1,6 +1,23 @@
 <div class="row">
   <div class="col-xs-12">
-    <% unless @account.nil? %>
+    <% if @account.nil? %>
+      <a href="/auth/spotify"><img width="300px" src="/images/Spotify_Logo_RGB_Green.png" alt="Sign in/Sign up with Spotify"></a>
+    <% else %>
+
+      <a href="/auth/slack"><img width="300px" src="/images/Slack_RGB.png" alt="Connect a Slack team"></a>
+
+      <ul>
+        <% @account.logins_dataset.where(provider: 'slack').each do |login| %>
+          <li>
+            <%= login.slack_team.name %></a>
+            <a href="#" data-login-id="<%= login.id %>" class="btn btn-sm btn-danger">
+              <i class="fa fa-trash-o"></i>
+              <span class="sr-only">Remove Slack team</span>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+
       <h2>Collectors</h2>
       <ul>
         <% @account.collectors.each do |collector| %>
@@ -23,6 +40,14 @@
         <p>Slack webhook token: <input name="validation_token" type="text"></p>
         <input type="submit" value="Add Collector" class="btn btn-primary">
       </form>
+
+      <h2>Playlists</h2>
+      <ul>
+        <% @playlists.each do |playlist| %>
+          <li>
+            <%= playlist.name %>
+          </li>
+        <% end %>
     <% end %>
   </div>
 </div>

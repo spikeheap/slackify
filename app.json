@@ -13,6 +13,12 @@
     },
     "SPOTIFY_CLIENT_SECRET": {
       "description": "The client secret generted for your app (see https://developer.spotify.com/my-applications/#!/applications)."
+    },
+    "SLACK_CLIENT_ID": {
+       "description": "Your Slack App client ID (see https://api.slack.com/apps/new)"
+    },
+    "SLACK_CLIENT_SECRET": {
+      "description": "Your Slack App client secret (see https://api.slack.com/apps/new)"
     }
   },
   "addons": [

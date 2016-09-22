@@ -3,6 +3,7 @@ require 'sinatra/base'
 require 'json'
 require 'rspotify'
 require 'rspotify/oauth'
+require 'omniauth-slack'
 require 'sinatra/sequel'
 require 'sequel'
 
@@ -14,6 +15,8 @@ require 'uglifier'
 # assets
 require 'bootstrap'
 require 'font-awesome-sass'
+
+require 'pry' if ENV['RACK_ENV'] == 'development'
 
 class Slackify < Sinatra::Base
 
@@ -62,8 +65,10 @@ class Slackify < Sinatra::Base
   require_relative './models/account'
   require_relative './models/collector'
   require_relative './models/login'
+  require_relative './models/slack_team'
 
   use OmniAuth::Builder do
+    provider :slack, ENV['SLACK_CLIENT_ID'], ENV['SLACK_CLIENT_SECRET'], scope: 'channels:history channels:read chat:write:bot'
     provider :spotify, ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_CLIENT_SECRET'], scope: 'user-read-email playlist-modify-public playlist-read-collaborative playlist-modify-private' # user-library-read user-library-modify
   end
 
@@ -73,6 +78,20 @@ class Slackify < Sinatra::Base
 
   get '/' do
     @account = current_account
+
+    user = RSpotify::User.new(
+      'id' => current_account.spotify_id, 
+      'display_name' => current_account.display_name,
+      'type' => 'user',
+      'credentials' => {
+        "token" => current_account.logins.first.token,
+        "refresh_token" => current_account.logins.first.refresh_token,
+        "expires_at" => current_account.logins.first.expires_at,
+        "expires" => current_account.logins.first.expires
+      })
+
+    # TODO cache this
+    @playlists = get_all_playlists_owned_by(user)
     erb :index
   end
 
@@ -124,8 +143,8 @@ class Slackify < Sinatra::Base
     status 200
   end
 
-  get '/auth/:provider/callback' do
-    error 403 if params[:provider] != 'spotify'
+  get '/auth/spotify/callback' do
+    error 403 unless request.env['omniauth.auth']
 
     # persist the login
     auth_data = request.env['omniauth.auth']
@@ -135,16 +154,30 @@ class Slackify < Sinatra::Base
       account.spotify_id = auth_data['info']['id']
     end
 
+    login = Login.find_or_create(account: account, provider: params[:provider]) do |login|
+      login.token = auth_data['credentials']['token']
+      login.refresh_token = auth_data['credentials']['refresh_token']
+      login.expires_at = Time.at(auth_data['credentials']['expires_at'])
+      login.expires = true   
+    end
+
     session[:account_id] = account.id
 
-    login = Login.find_or_create(account: account, provider: params[:provider])
+    redirect '/'
+  end
 
-    login.token = auth_data['credentials']['token']
-    login.refresh_token = auth_data['credentials']['refresh_token']
-    login.expires_at = Time.at(auth_data['credentials']['expires_at'])
-    login.expires = true
+  get '/auth/slack/callback' do
+    auth_data = request.env['omniauth.auth']
+
+    error 401 unless current_account
+    error 403 unless auth_data
+
+    login = Login.find_or_create(account: current_account, provider: 'slack') do |login|
+      login.token = auth_data['credentials']['token']
+    end
+
+    login.slack_team = SlackTeam.new(name: auth_data['info']['team'])
     login.save
-
     redirect '/'
   end
 
@@ -217,6 +250,21 @@ class Slackify < Sinatra::Base
       puts exception.message
       puts exception.backtrace
     end
+  end
+
+  def get_all_playlists_owned_by(user)
+    limit = 50
+    offset = 0
+    playlists = []
+    # keep asking to get all the playlists
+    loop do
+      result_set = user.playlists(limit: limit, offset: offset)
+      playlists += result_set
+      offset += limit
+      break unless result_set.count == limit
+    end
+
+    playlists.select {|playlist| playlist.owner.external_urls['spotify'] == "http://open.spotify.com/user/#{user.id}" || playlist.collaborative }
   end
 
   helpers do
