@@ -1,5 +1,5 @@
 source 'http://rubygems.org'
-ruby '2.3.1'
+ruby '2.5.1'
 
 gem 'dotenv'
 gem 'omniauth'
@@ -14,9 +14,9 @@ gem 'puma'
 
 gem 'sprockets'
 gem 'sprockets-helpers' # needed for FontAwesome
-gem 'sass'
+gem 'sassc'
 gem 'uglifier'
-gem 'bootstrap', '~> 4.0.0.alpha3'
+gem 'bootstrap', '~> 4.0.0'
 gem 'font-awesome-sass'
 
 
