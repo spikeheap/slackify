@@ -6,6 +6,8 @@ services:
       - POSTGRES_DB
       - POSTGRES_USER
       - POSTGRES_PASSWORD
+    ports:
+      - 5432:5432
   # db_test:
   #   image: postgres
   #   environment:
