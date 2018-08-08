@@ -1,13 +1,4 @@
 ## To do
-- [x] protect all management pages with OAuth & session cookie
-- [x] Use a consistent secret, so it doesn't need authenticating over and over again.
-- [x] Refactor migrations out of single class
-- [x] Review TODOs
-- [x] playlist URI support
-- [x] add bootstrap
-- [x] 'remove' button for collectors
-- [x] Production asset precompilation
-
 - [ ] improve in-page description/docs
 - [ ] improve design
 
