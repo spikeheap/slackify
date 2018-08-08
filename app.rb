@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'dotenv'
 require 'sinatra/base'
 require 'json'
@@ -16,6 +18,7 @@ require 'bootstrap'
 require 'font-awesome-sass'
 
 class Slackify < Sinatra::Base
+  Dir[File.join(File.dirname(__FILE__), 'lib', '*.rb')].each { |lib| require lib }
 
   Dotenv.load
 
@@ -41,11 +44,11 @@ class Slackify < Sinatra::Base
   end
   # End of assets
 
-  enable  :sessions
+  enable :sessions
   set :session_secret, ENV['SESSION_SECRET']
 
   register Sinatra::SequelExtension
-  Sequel::Model.plugin :timestamps, :update_on_create => true
+  Sequel::Model.plugin :timestamps, update_on_create: true
 
   # wrap this so services like Heroku work out of the box
   if ENV['DATABASE_URL'].nil?
@@ -57,7 +60,7 @@ class Slackify < Sinatra::Base
   ## Migrations
   Sequel.extension :migration
   Sequel::Migrator.apply(database, './db/migrate/')
-  
+
   # these need to come last. Trust me
   require_relative './models/account'
   require_relative './models/collector'
@@ -84,42 +87,43 @@ class Slackify < Sinatra::Base
     # needed for get_playlist
     RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_CLIENT_SECRET'])
     RSpotify::User.new(
-      'id' => current_account.spotify_id, 
+      'id' => current_account.spotify_id,
       'display_name' => current_account.display_name,
       'type' => 'user',
       'credentials' => {
-        "token" => current_account.logins.first.token,
-        "refresh_token" => current_account.logins.first.refresh_token,
-        "expires_at" => current_account.logins.first.expires_at,
-        "expires" => current_account.logins.first.expires
-      })
+        'token' => current_account.logins.first.token,
+        'refresh_token' => current_account.logins.first.refresh_token,
+        'expires_at' => current_account.logins.first.expires_at,
+        'expires' => current_account.logins.first.expires
+      }
+    )
 
     Collector.find_or_create(
-        account: current_account, 
-        login: current_account.logins.first,
-        playlist_name: get_playlist(playlist_owner_spotify_id, playlist_spotify_id).name,
-        playlist_owner_spotify_id: playlist_owner_spotify_id,
-        playlist_spotify_id: playlist_spotify_id
-      ) do |collector|
-        collector.validation_token = params['validation_token']
-      end
+      account: current_account,
+      login: current_account.logins.first,
+      playlist_name: get_playlist(playlist_owner_spotify_id, playlist_spotify_id).name,
+      playlist_owner_spotify_id: playlist_owner_spotify_id,
+      playlist_spotify_id: playlist_spotify_id
+    ) do |collector|
+      collector.validation_token = params['validation_token']
+    end
 
     redirect '/'
   end
 
-  delete "/collectors/:id" do
+  delete '/collectors/:id' do
     error 403 unless request.xhr?
 
     collector = Collector[params[:id].to_i]
 
     error 404 if collector.nil?
-    
+
     collector.delete
 
     status 200
   end
 
-  delete "/session" do
+  delete '/session' do
     session.delete :account_id
     status 200
   end
@@ -159,13 +163,13 @@ class Slackify < Sinatra::Base
     error 403 if collector.nil?
 
     tracks = extract_song_ids_from(params['text'])
-      .map{|song_id| RSpotify::Track.find(song_id)
-          .tap{|track| puts "Found #{track.name} by #{track.artists.map(&:name).join(', ')}"}}
-      .reject{|track| track.nil?}
+             .map do |song_id|
+               RSpotify::Track.find(song_id)
+                              .tap { |track| puts "Found #{track.name} by #{track.artists.map(&:name).join(', ')}" }
+             end
+             .reject(&:nil?)
 
-    unless tracks.empty?
-      add_to_spotify_playlist(collector, tracks)
-    end
+    add_to_spotify_playlist(collector, tracks) unless tracks.empty?
 
     status 200
   end
@@ -175,8 +179,7 @@ class Slackify < Sinatra::Base
   #
 
   def get_playlist(playlist_owner, id)
-    url = "users/#{playlist_owner}/"
-    url << (id == 'starred' ? id : "playlists/#{id}")
+    url = "users/#{playlist_owner}/#{id == 'starred' ? id : "playlists/#{id}"}"
     puts url
 
     response = RSpotify::User.oauth_get(playlist_owner, url)
@@ -197,22 +200,23 @@ class Slackify < Sinatra::Base
   def add_to_spotify_playlist(collector, tracks)
     RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_CLIENT_SECRET'])
     RSpotify::User.new(
-      'id' => collector.login.account.spotify_id, 
-      'display_name' => collector.login.account.display_name, 
+      'id' => collector.login.account.spotify_id,
+      'display_name' => collector.login.account.display_name,
       'credentials' => {
-        "token" => collector.login.token,
-        "refresh_token" => collector.login.refresh_token,
-        "expires_at" => collector.login.expires_at,
-        "expires" => collector.login.expires,
-      })
+        'token' => collector.login.token,
+        'refresh_token' => collector.login.refresh_token,
+        'expires_at' => collector.login.expires_at,
+        'expires' => collector.login.expires
+      }
+    )
 
     begin
       playlist = get_playlist(collector.playlist_owner_spotify_id, collector.playlist_spotify_id)
 
-      puts "Adding #{tracks.map(&:name).join(', ')} to #{playlist.owner.id}'s playlist '#{playlist.name}'" 
+      puts "Adding #{tracks.map(&:name).join(', ')} to #{playlist.owner.id}'s playlist '#{playlist.name}'"
       playlist.add_tracks!(tracks)
       puts "Added #{tracks.map(&:name).join(', ')} to #{playlist.owner.id}'s playlist '#{playlist.name}'"
-    rescue => exception
+    rescue StandardError => exception
       puts puts "Error adding #{tracks.map(&:name).join(', ')} to playlist #{collector.playlist_owner_spotify_id}/#{collector.playlist_spotify_id}"
       puts exception.message
       puts exception.backtrace
@@ -230,6 +234,4 @@ class Slackify < Sinatra::Base
   end
 end
 
-if __FILE__ == $0
-  Slackify.run!
-end
+Slackify.run! if $PROGRAM_NAME == __FILE__
