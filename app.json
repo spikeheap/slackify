@@ -15,6 +15,7 @@
       "description": "The client secret generted for your app (see https://developer.spotify.com/my-applications/#!/applications)."
     }
   },
+  "stack": "heroku-16",
   "addons": [
     {
       "plan": "heroku-postgresql:hobby-dev"
