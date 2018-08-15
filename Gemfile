@@ -16,7 +16,7 @@ gem 'sprockets'
 gem 'sprockets-helpers' # needed for FontAwesome
 gem 'sassc'
 gem 'uglifier'
-gem 'bootstrap', '~> 4.0.0'
+gem 'bootstrap', '~> 4.1.3'
 gem 'font-awesome-sass'
 
 
