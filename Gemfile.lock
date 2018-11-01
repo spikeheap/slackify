@@ -87,7 +87,7 @@ GEM
     sassc (1.12.1)
       ffi (~> 1.9.6)
       sass (>= 3.3.0)
-    sequel (5.11.0)
+    sequel (5.13.0)
     sequel_pg (1.11.0)
       pg (>= 0.18.0)
       sequel (>= 4.38.0)
